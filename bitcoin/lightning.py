@@ -177,6 +177,8 @@ class LnAddr(object):
             if k == 'd':
                 description = v
                 break
+            if k == 'h':
+                description = v.hex()
         return description
 
 
@@ -229,7 +231,14 @@ def lnencode(addr: LnAddr, privkey: bytes, net = None):
                 expirybits = expirybits[5:]
             data += tagged('x', expirybits)
         elif k == 'h':
-            data += tagged_bytes('h', sha256(v).digest())
+            if isinstance(v, str):
+                # raw string
+                data += tagged_bytes('h', sha256(v.encode('utf-8')).digest())
+            elif isinstance(v, bytes):
+                # encoded bytes
+                data += tagged_bytes('h', v)
+            else:
+                raise BaseException("wrong value", k, v)
         elif k == 'n':
             data += tagged_bytes('n', v)
         elif k == 'c':
