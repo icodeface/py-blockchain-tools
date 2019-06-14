@@ -9,6 +9,7 @@ class QtumMainnet(object):
     ADDRTYPE_P2PKH = 0x3a
     ADDRTYPE_P2SH = 0x32
     SEGWIT_HRP = "qc"
+    LN_SEGWIT_HRP = 'lnqc'
     GENESIS = "000075aef83cf2853580f8ae8ce6f8c3096cfa21d98334d6e3f95e5582ed986c"
     XPRV_HEADERS = {
         'standard': 0x0488ade4,
@@ -25,11 +26,14 @@ class QtumMainnet(object):
         'p2wsh': 0x2aa7ed3
     }
 
+    MSG_MAGIC = b"\x15Qtum Signed Message:\n"
 
-class QtumTestnet(object):
+
+class QtumTestnet(QtumMainnet):
     ADDRTYPE_P2PKH = 120
     ADDRTYPE_P2SH = 110
     SEGWIT_HRP = "tq"
+    LN_SEGWIT_HRP = 'lntq'
     WIF_PREFIX = 0xef
     GENESIS = "0000e803ee215c0684ca0d2f9220594d3f828617972aad66feb2ba51f5e14222"
     XPRV_HEADERS = {
@@ -50,4 +54,5 @@ class QtumTestnet(object):
 
 class QtumRegtest(QtumTestnet):
     SEGWIT_HRP = "qcrt"
+    LN_SEGWIT_HRP = 'lnqcrt'
     GENESIS = "0x665ed5b402ac0b44efc37d8926332994363e8a7278b7ee9a58fb972efadae943"

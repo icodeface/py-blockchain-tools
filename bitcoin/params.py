@@ -10,6 +10,7 @@ class BitcoinMainnet(object):
     ADDRTYPE_P2PKH = 0
     ADDRTYPE_P2SH = 5
     SEGWIT_HRP = "bc"
+    LN_SEGWIT_HRP = 'lnbc'
     GENESIS = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
     XPRV_HEADERS = {
         'standard':    0x0488ade4,  # xprv
@@ -26,12 +27,15 @@ class BitcoinMainnet(object):
         'p2wsh':       0x02aa7ed3,  # Zpub
     }
 
+    MSG_MAGIC = b"\x18Bitcoin Signed Message:\n"
 
-class BitcoinTestnet(object):
+
+class BitcoinTestnet(BitcoinMainnet):
     WIF_PREFIX = 0xef
     ADDRTYPE_P2PKH = 111
     ADDRTYPE_P2SH = 196
     SEGWIT_HRP = "tb"
+    LN_SEGWIT_HRP = 'lntb'
     GENESIS = "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"
     XPRV_HEADERS = {
         'standard':    0x04358394,  # tprv
@@ -52,3 +56,4 @@ class BitcoinTestnet(object):
 class BitcoinRegtest(BitcoinTestnet):
     SEGWIT_HRP = "bcrt"
     GENESIS = "0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"
+    LN_SEGWIT_HRP = 'lnbcrt'

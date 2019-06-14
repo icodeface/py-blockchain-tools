@@ -32,7 +32,9 @@ from ecdsa.ecdsa import curve_secp256k1, generator_secp256k1
 from ecdsa.curves import SECP256k1
 from ecdsa.ellipticcurve import Point
 from ecdsa.util import string_to_number, number_to_string
-from .util import assert_bytes
+from .util import assert_bytes, to_bytes
+from .crypto import sha256d
+from .params import BitcoinMainnet
 
 CURVE_ORDER = SECP256k1.order
 
@@ -288,33 +290,34 @@ class ECPubkey(object):
     def is_at_infinity(self):
         return self == point_at_infinity()
 
+def msg_magic(message: bytes, net) -> bytes:
+    if net is None:
+        net = BitcoinMainnet
+    from .util import var_int
+    length = bytes.fromhex(var_int(len(message)))
+    return net.MSG_MAGIC + length + message
 
-# def msg_magic(message: bytes) -> bytes:
-#     from .bitcoin import var_int
-#     length = bfh(var_int(len(message)))
-#     return b"\x15Qtum Signed Message:\n" + length + message
 
-#
-# def verify_message_with_address(address: str, sig65: bytes, message: bytes):
-#     from .bitcoin import pubkey_to_address
-#     assert_bytes(sig65, message)
-#     try:
-#         h = sha256d(msg_magic(message))
-#         public_key, compressed = ECPubkey.from_signature65(sig65, h)
-#         # check public key using the address
-#         pubkey_hex = public_key.get_public_key_hex(compressed)
-#         for txin_type in ['p2pkh','p2wpkh','p2wpkh-p2sh']:
-#             addr = pubkey_to_address(txin_type, pubkey_hex)
-#             if address == addr:
-#                 break
-#         else:
-#             raise Exception("Bad signature")
-#         # check message
-#         public_key.verify_message_hash(sig65[1:], h)
-#         return True
-#     except Exception as e:
-#         print_error("Verification error: {0}".format(e))
-#         return False
+def verify_message_with_address(address: str, sig65: bytes, message: bytes, net = None):
+    from .addr import pubkey_to_address
+    assert_bytes(sig65, message)
+    try:
+        h = sha256d(msg_magic(message, net))
+        public_key, compressed = ECPubkey.from_signature65(sig65, h)
+        # check public key using the address
+        pubkey_hex = public_key.get_public_key_hex(compressed)
+        for txin_type in ['p2pkh','p2wpkh','p2wpkh-p2sh']:
+            addr = pubkey_to_address(txin_type, pubkey_hex)
+            if address == addr:
+                break
+        else:
+            raise Exception("Bad signature")
+        # check message
+        public_key.verify_message_hash(sig65[1:], h)
+        return True
+    except Exception as e:
+        print("Verification error: {0}".format(e))
+        return False
 
 
 def is_secret_within_curve_range(secret: Union[int, bytes]) -> bool:
@@ -376,25 +379,35 @@ class ECPrivkey(ECPubkey):
                          sigencode=der_sig_from_r_and_s,
                          sigdecode=get_r_and_s_from_der_sig)
 
-    # def sign_message(self, message: bytes, is_compressed: bool) -> bytes:
-    #     def bruteforce_recid(sig_string):
-    #         for recid in range(4):
-    #             sig65 = construct_sig65(sig_string, recid, is_compressed)
-    #             try:
-    #                 self.verify_message_for_address(sig65, message)
-    #                 return sig65, recid
-    #             except Exception as e:
-    #                 continue
-    #         else:
-    #             raise Exception("error: cannot sign message. no recid fits..")
-    #
-    #     message = to_bytes(message, 'utf8')
-    #     msg_hash = sha256d(msg_magic(message))
-    #     sig_string = self.sign(msg_hash,
-    #                            sigencode=sig_string_from_r_and_s,
-    #                            sigdecode=get_r_and_s_from_sig_string)
-    #     sig65, recid = bruteforce_recid(sig_string)
-    #     return sig65
+    def verify_message_for_address(self, sig65: bytes, message: bytes, algo=lambda x: sha256d(msg_magic(x))) -> None:
+        assert_bytes(message)
+        h = algo(message)
+        public_key, compressed = self.from_signature65(sig65, h)
+        # check public key
+        if public_key != self:
+            raise Exception("Bad signature")
+        # check message
+        self.verify_message_hash(sig65[1:], h)
+
+    def sign_message(self, message: bytes, is_compressed: bool, algo=lambda x: sha256d(msg_magic(x))) -> bytes:
+        def bruteforce_recid(sig_string):
+            for recid in range(4):
+                sig65 = construct_sig65(sig_string, recid, is_compressed)
+                try:
+                    self.verify_message_for_address(sig65, message, algo)
+                    return sig65, recid
+                except Exception as e:
+                    continue
+            else:
+                raise Exception("error: cannot sign message. no recid fits..")
+
+        message = to_bytes(message, 'utf8')
+        msg_hash = algo(message)
+        sig_string = self.sign(msg_hash,
+                               sigencode=sig_string_from_r_and_s,
+                               sigdecode=get_r_and_s_from_sig_string)
+        sig65, recid = bruteforce_recid(sig_string)
+        return sig65
 
     # def decrypt_message(self, encrypted, magic=b'BIE1'):
     #     encrypted = base64.b64decode(encrypted)

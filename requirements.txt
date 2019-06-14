@@ -2,3 +2,4 @@ eth_utils
 eth-abi
 eth-keys
 ecdsa
+bitstring
