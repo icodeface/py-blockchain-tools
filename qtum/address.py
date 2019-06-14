@@ -9,13 +9,18 @@ from qtum.params import QtumMainnet, QtumRegtest, QtumTestnet
 from bitcoin.addr import hash_to_segwit_addr, pubkey_to_address, address_from_private_key
 
 
-def addr_convert(addr, fromnet, tonet):
-    addr_type, hash160 = b58_address_to_hash160(addr)
-    if addr_type == fromnet.ADDRTYPE_P2PKH:
-        return hash160_to_b58_address(hash160, addrtype=tonet.ADDRTYPE_P2PKH)
-    elif addr_type == fromnet.ADDRTYPE_P2SH:
-        return hash160_to_b58_address(hash160, addrtype=tonet.ADDRTYPE_P2SH)
-
+def addr_convert(addr:str, fromnet, tonet):
+    if len(addr) == 34:
+        addr_type, hash160 = b58_address_to_hash160(addr)
+        if addr_type == fromnet.ADDRTYPE_P2PKH:
+            return hash160_to_b58_address(hash160, addrtype=tonet.ADDRTYPE_P2PKH)
+        elif addr_type == fromnet.ADDRTYPE_P2SH:
+            return hash160_to_b58_address(hash160, addrtype=tonet.ADDRTYPE_P2SH)
+    elif addr.startswith(fromnet.SEGWIT_HRP):
+        script = address_to_script(addr, fromnet)
+        return script_to_address(script, tonet)
+    else:
+        raise BaseException('unknown address type', addr)
 
 if __name__ == '__main__':
     # print(addr_convert('1C5bSj1iEGUgSTbziymG7Cn18ENQuT36vv', BitcoinMainnet, QtumMainnet))
