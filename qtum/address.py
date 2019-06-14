@@ -10,7 +10,7 @@ from bitcoin.addr import hash_to_segwit_addr, pubkey_to_address, address_from_pr
 
 
 def addr_convert(addr:str, fromnet, tonet):
-    if len(addr) == 34:
+    if len(addr) == 34 or len(addr) == 35:
         addr_type, hash160 = b58_address_to_hash160(addr)
         if addr_type == fromnet.ADDRTYPE_P2PKH:
             return hash160_to_b58_address(hash160, addrtype=tonet.ADDRTYPE_P2PKH)
