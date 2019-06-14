@@ -179,5 +179,5 @@ def address_from_private_key(sec: str, net=None) -> str:
         net = BitcoinMainnet
     txin_type, privkey, compressed = deserialize_privkey(sec, net.WIF_PREFIX)
     public_key = ecc.ECPrivkey(privkey).get_public_key_hex(compressed=compressed)
-    address = pubkey_to_address(txin_type, public_key)
+    address = pubkey_to_address(txin_type, public_key, net=net)
     return address
