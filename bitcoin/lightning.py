@@ -381,6 +381,7 @@ def lndecode(a, verbose=False, expected_hrp=None, net=None):
             addr.pubkey = pubkeybytes
         elif tag == 'c':
             addr._min_final_cltv_expiry = tagdata.int
+            addr.tags.append(('c', tagdata.int))
         else:
             addr.unknown_tags.append((tag, tagdata))
 
