@@ -6,6 +6,7 @@ __author__ = 'CodeFace'
 
 
 class QtumMainnet(object):
+    WIF_PREFIX = 0x80
     ADDRTYPE_P2PKH = 0x3a
     ADDRTYPE_P2SH = 0x32
     SEGWIT_HRP = "qc"
