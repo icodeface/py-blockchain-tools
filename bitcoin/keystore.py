@@ -4,7 +4,7 @@
 __author__ = 'CodeFace'
 """
 from .util import inv_dict
-from .b58 import DecodeBase58Check
+from .b58 import DecodeBase58Check, EncodeBase58Check
 from typing import Tuple
 from .params import BitcoinMainnet
 from . import ecc
@@ -24,6 +24,21 @@ WIF_SCRIPT_TYPES_INV = inv_dict(WIF_SCRIPT_TYPES)
 def is_segwit_script_type(txin_type: str) -> bool:
     return txin_type in ('p2wpkh', 'p2wpkh-p2sh', 'p2wsh', 'p2wsh-p2sh')
 
+def serialize_privkey(secret: bytes, compressed: bool, txin_type: str,
+                      internal_use: bool=False, wif_prefix=BitcoinMainnet.WIF_PREFIX) -> str:
+    # we only export secrets inside curve range
+    secret = ecc.ECPrivkey.normalize_secret_bytes(secret)
+    if internal_use:
+        prefix = bytes([(WIF_SCRIPT_TYPES[txin_type] + wif_prefix) & 255])
+    else:
+        prefix = bytes([wif_prefix])
+    suffix = b'\01' if compressed else b''
+    vchIn = prefix + secret + suffix
+    base58_wif = EncodeBase58Check(vchIn)
+    if internal_use:
+        return base58_wif
+    else:
+        return '{}:{}'.format(txin_type, base58_wif)
 
 def deserialize_privkey(key: str, wif_prefix=BitcoinMainnet.WIF_PREFIX) -> Tuple[str, bytes, bool]:
     txin_type = None
