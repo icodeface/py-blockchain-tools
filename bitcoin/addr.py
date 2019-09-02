@@ -65,6 +65,9 @@ def hash160_to_p2sh(h160: bytes, net=None) -> str:
     if net is None: net = BitcoinMainnet
     return hash160_to_b58_address(h160, net.ADDRTYPE_P2SH)
 
+def public_key_to_p2sh(public_key: bytes, net=None) -> str:
+    if net is None: net = BitcoinMainnet
+    return hash160_to_p2sh(hash_160(public_key), net=net)
 
 def public_key_to_p2pkh(public_key: bytes, net=None) -> str:
     if net is None: net = BitcoinMainnet
@@ -167,6 +170,8 @@ def pubkey_to_address(txin_type: str, pubkey: str, *, net=None) -> str:
         return public_key_to_p2pkh(bytes.fromhex(pubkey), net=net)
     elif txin_type == 'p2wpkh':
         return public_key_to_p2wpkh(bytes.fromhex(pubkey), net=net)
+    elif txin_type == 'p2sh':
+        return public_key_to_p2sh(bytes.fromhex(pubkey), net=net)
     elif txin_type == 'p2wpkh-p2sh':
         scriptSig = p2wpkh_nested_script(pubkey)
         return hash160_to_p2sh(hash_160(bytes.fromhex(scriptSig)), net=net)
@@ -178,6 +183,17 @@ def address_from_private_key(sec: str, net=None) -> str:
     if net is None:
         net = BitcoinMainnet
     txin_type, privkey, compressed = deserialize_privkey(sec, net.WIF_PREFIX)
+    print(privkey)
     public_key = ecc.ECPrivkey(privkey).get_public_key_hex(compressed=compressed)
+    print(public_key)
+    address = pubkey_to_address(txin_type, public_key, net=net)
+    return address
+
+
+def address_from_private_key_bytes(priv: bytes, compressed: bool, txin_type: str, net=None) -> str:
+    if net is None:
+        net = BitcoinMainnet
+    public_key = ecc.ECPrivkey(priv).get_public_key_hex(compressed=compressed)
+    # print("pubkey", public_key)
     address = pubkey_to_address(txin_type, public_key, net=net)
     return address

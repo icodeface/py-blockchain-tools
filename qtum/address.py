@@ -3,10 +3,12 @@
 """
 __author__ = 'CodeFace'
 """
-from bitcoin.addr import b58_address_to_hash160, hash160_to_b58_address, script_to_address, address_to_script
+from bitcoin.addr import b58_address_to_hash160, hash160_to_b58_address, script_to_address, address_to_script, public_key_to_p2wpkh
 from bitcoin.params import BitcoinMainnet, BitcoinTestnet, BitcoinRegtest
 from qtum.params import QtumMainnet, QtumRegtest, QtumTestnet
 from bitcoin.addr import hash_to_segwit_addr, pubkey_to_address, address_from_private_key
+from bitcoin.keystore import deserialize_privkey
+from bitcoin import ecc
 
 
 def addr_convert(addr:str, fromnet, tonet):

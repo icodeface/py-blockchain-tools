@@ -318,7 +318,7 @@ def lndecode(a, verbose=False, expected_hrp=None, net=None):
 
     while data.pos != data.len:
         tag, tagdata, data = pull_tagged(data)
-
+        print(tag, tagdata)
         # BOLT #11:
         #
         # A reader MUST skip over unknown fields, an `f` field with unknown
