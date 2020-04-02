@@ -6,6 +6,16 @@ __author__ = 'CodeFace'
 import binascii
 
 
+def reverse_str(encoded: str):
+    i = len(encoded) // 2
+    while True:
+        if i <= 0:
+            break
+        x = encoded[i*2-2:i*2]
+        print(f'{x}', end='')
+        i -= 1
+
+
 def reverse_str_to_hex_print(encoded: str):
     i = len(encoded) // 2
     while True:
@@ -40,7 +50,7 @@ btc = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
 qtum = "Sep 02, 2017 Bitcoin breaks $5,000 in latest price frenzy"
 
 #transfer(qtum)
-reverse_str_to_hex_print('d12077b3a7f10e71df5950932d30b5eed064a196bb8ce60578a12c462cfb46ee')
+reverse_str('067ce78100994c2e1a69d544e519570d166440a066c92f4c88dc01683912b1e0')
 
 # print('\n')
 

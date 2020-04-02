@@ -18,18 +18,21 @@ def addr_convert(addr:str, fromnet, tonet):
             return hash160_to_b58_address(hash160, addrtype=tonet.ADDRTYPE_P2PKH)
         elif addr_type == fromnet.ADDRTYPE_P2SH:
             return hash160_to_b58_address(hash160, addrtype=tonet.ADDRTYPE_P2SH)
+        else:
+            print("unknown addr type", addr_type)
     elif addr.startswith(fromnet.SEGWIT_HRP):
         script = address_to_script(addr, fromnet)
         return script_to_address(script, tonet)
     else:
         raise BaseException('unknown address type', addr)
 
-if __name__ == '__main__':
-    # print(addr_convert('1C5bSj1iEGUgSTbziymG7Cn18ENQuT36vv', BitcoinMainnet, QtumMainnet))
-    # print(addr_convert('', BitcoinTestnet, QtumTestnet))
-    print(addr_convert('mvHPesWqLXXy7hntNa7vbAoVwqN5PnrwJd', BitcoinTestnet, QtumTestnet))
 
-    print(address_from_private_key('cRumXueoZHjhGXrZWeFoEBkeDHu2m8dW5qtFBCqSAt4LDR2Hnd8Q', net=BitcoinTestnet))
+if __name__ == '__main__':
+    print(addr_convert('qSrM9K6FMhZ29Vkp8Rdk8Jp66bbfpjFETq', QtumTestnet, BitcoinTestnet))
+    # print(addr_convert('', BitcoinTestnet, QtumTestnet))
+    # print(addr_convert('mvHPesWqLXXy7hntNa7vbAoVwqN5PnrwJd', , ))
+
+    # print(address_from_private_key('92Xr7CnX2VqqZcnwmkKninH5ZSw5UVYnEHjZJgQe2NfB5oMN7X1', net=QtumTestnet))
 
     # print(script_to_address('0014751e76e8199196d454941c45d1b3a323f1433bd6', QtumRegtest))
     # print(script_to_address('000000c4a5cad46221b2a187905e5266362b99d5e91c6ce24d165dab93e86433', BitcoinTestnet))
