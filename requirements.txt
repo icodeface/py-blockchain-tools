@@ -3,3 +3,5 @@ eth-abi
 eth-keys
 ecdsa
 bitstring
+numpy
+pandas
