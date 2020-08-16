@@ -21,6 +21,8 @@ def sec2str(sec: float) -> str:
 
 
 def show(data: list, title=""):
+    if not data:
+        return
     if np.min(data) > 1800:
         arr = np.array([x/3600 for x in data])
         plt.xlabel("duration(hour)")
@@ -98,16 +100,30 @@ def analyse_miner_log(path: str, ignores: list, ts_filer: dict, start_from: floa
             data[sector][task_type] = f"{sec2str(duration)} @ {worker}"
 
     avg_sector_duration = 0.0
-    num_sectors = 0   # 日志的这段时间内，大概挖出了多少个sector
     for task_type, durations in stat.items():
+        if not durations:
+            continue
         show(durations, task_type)
         d = sum(durations) / len(durations)
         avg_sector_duration += d
-        num_sectors += len(durations)
         print(f"{task_type} count: {len(durations)}   avg: {sec2str(d)}")
-    num_sectors = num_sectors / len(stat.keys())
-
     print(f"avg sector duration : {sec2str(avg_sector_duration)}")
+
+    # 日志的这段时间内，大概挖出了多少个sector
+    # num_sectors = 0.0
+    # for task_type, durations in stat.items():
+    #     num_sectors += len(durations)
+    # num_sectors /= len(stat.keys())
+
+    # 日志的这段时间内，大概挖出了多少个sector
+    num_sectors = 0.0
+    for task_type, durations in stat.items():
+        if not durations:
+            continue
+        d = sum(durations) / len(durations)
+        num_sectors += len(durations) * (d / avg_sector_duration)
+
+    print(f"\nlog analyse duration {sec2str((end-start))}, num_sectors {num_sectors}")
     print("该集群日产出约为: {:.2f} T".format(num_sectors * 32 * (24*3600) / (end-start) / 1024))
 
     print("\ndetails:")
@@ -140,4 +156,6 @@ if __name__ == '__main__':
                       ignores=['addpiece', 'deal', 'unseal', 'fetch', 'finalize'],
                       ts_filer=ts_filer,
                       start_from=parse_ts('2020-08-08T00:00:00.000'))
+    # analyse_worker_log("/Users/apple/Desktop/worker.172.18.23.66.log")
+
 
