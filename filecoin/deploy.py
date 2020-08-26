@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import os
+import json
 
 VERSION = '101'
 LOCAL_IP = '172.18.1.1'
@@ -92,11 +93,11 @@ ListenAddress = "/ip4/{LOCAL_IP}/tcp/1819/http"
 #  Timeout = "30s"
 #
 [Libp2p]
-ListenAddresses = ["/ip4/0.0.0.0/tcp/{LOTUS_P2P_LISTEN}"]
+ListenAddresses = ["/ip4/{LOCAL_IP}/tcp/{LOTUS_P2P_LISTEN}"]
 AnnounceAddresses = {LOTUS_ANNOUNCED}
 #  NoAnnounceAddresses = []
-ConnMgrLow = 896
-ConnMgrHigh = 1024
+ConnMgrLow = 100
+ConnMgrHigh = 200
 #  ConnMgrGrace = "20s"
 #
 [Pubsub]
@@ -183,6 +184,7 @@ ConnMgrHigh = 1024
 #  PieceCidBlocklist = []
 #  ExpectedSealDuration = "1m0s"
 #  Filter = ""
+Filter = "jq -e '.Proposal.Client == \\"t1nslxql4pck5pq7hddlzym3orxlx35wkepzjkm3i\\" or .Proposal.Client == \\"t1stghxhdp2w53dym2nz2jtbpk6ccd4l2lxgmezlq\\" or .Proposal.Client == \\"t1mcr5xkgv4jdl3rnz77outn6xbmygb55vdejgbfi\\" or .Proposal.Client == \\"t1qiqdbbmrdalbntnuapriirduvxu5ltsc5mhy7si\\" '"
 #
 [Sealing]
 #  MaxWaitDealsSectors = 2
@@ -256,6 +258,13 @@ def update_miner_api():
         os.mkdir(dest)
     os.system(f"cp {os.path.join(DATA_PATH, 'lotusminer_{}/api'.format(VERSION))} {dest}")
     os.system(f"cp {os.path.join(DATA_PATH, 'lotusminer_{}/token'.format(VERSION))} {dest}")
+
+
+def set_miner_addrs():
+    addrs = " ".join([f"/ip4/{IP}/tcp/{MINER_P2P_ANNOUNCE}" for IP in EXTERN_IPS])
+    cmd = f"lotus-miner actor set-addrs {addrs}"
+    print(cmd)
+    os.system(cmd)
 
 
 def gen_mount_hdd():
@@ -389,6 +398,20 @@ stdout_logfile=/home/ps/worker.log
 
 
 if __name__ == "__main__":
+    C = CLUSTERS["H"]
+    VERSION = '825'
+
+    LOCAL_IP = C["local_ip"]
+    LOTUS_P2P_LISTEN = C["lotus_listen"]
+    LOTUS_ANNOUNCED = f"""["/ip4/{LOCAL_IP}/tcp/{LOTUS_P2P_LISTEN}"]"""
+    MINER_P2P_LISTEN = C["miner_listen"]
+    MINER_P2P_ANNOUNCE = C["miner_announce"]
+    EXTERN_IPS = C["extern_ips"]
+    MINER_ANNOUNCED = json.dumps(list([f"/ip4/{IP}/tcp/{MINER_P2P_ANNOUNCE}" for IP in EXTERN_IPS]))
+
+    DATA_PATH = '/home/ps/share/ssd/data'
+    SCRIPT_PATH = '/home/ps/share/ssd/script'
+
     cmds = {
         "gen-run-lotus": gen_run_lotus,
         "lotus-superv-conf": lotus_superv_conf,
@@ -400,6 +423,7 @@ if __name__ == "__main__":
         "gen-run-miner": gen_run_miner,
         "miner-superv-conf": miner_superv_conf,
         "update-miner-api": update_miner_api,
+        "set-miner-addrs": set_miner_addrs,
         "gen-run-worker": gen_run_worker,
         "gen-worker-conf": gen_worker_conf,
     }
