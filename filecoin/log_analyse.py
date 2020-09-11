@@ -42,7 +42,7 @@ def show(data: list, title=""):
     plt.show()
 
 
-def analyse_miner_log(path: str, ignores: list, ts_filer: dict, start_from: float = None):
+def analyse_miner_log(path: str, ignores: list, ts_filer: dict, start_from: float = 0):
     data = OrderedDict()
     start = 0.0
     end = 0.0
@@ -51,6 +51,8 @@ def analyse_miner_log(path: str, ignores: list, ts_filer: dict, start_from: floa
         for line in f:
             try:
                 log = json.loads(line)
+                if not isinstance(log, dict):
+                    continue
                 sector = log.get("sectorNumber", None)
                 if not sector:
                     continue
@@ -82,8 +84,10 @@ def analyse_miner_log(path: str, ignores: list, ts_filer: dict, start_from: floa
                         data[sector] = OrderedDict()
                     data[sector][task_type] = (duration, worker)
                     continue
-
+            except json.decoder.JSONDecodeError:
+                continue
             except BaseException as e:
+                print(type(e), e)
                 continue
 
     stat = OrderedDict()
@@ -124,7 +128,8 @@ def analyse_miner_log(path: str, ignores: list, ts_filer: dict, start_from: floa
         num_sectors += len(durations) * (d / avg_sector_duration)
 
     print(f"\nlog analyse duration {sec2str((end-start))}, num_sectors {num_sectors}")
-    print("该集群日产出约为: {:.2f} T".format(num_sectors * 32 * (24*3600) / (end-start) / 1024))
+    if end > start:
+        print("该集群日产出约为: {:.2f} T".format(num_sectors * 32 * (24*3600) / (end-start) / 1024))
 
     print("\ndetails:")
     print(json.dumps(data, indent='\t'))
